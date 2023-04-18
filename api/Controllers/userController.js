@@ -1,27 +1,22 @@
-const { User } = require('../models/index')
+const { User } = require("../models/index");
 const { compare } = require("../helper/bcryptjs");
 const { createToken } = require("../helper/jwt");
 
-class Controller{
-    static async registerUser(req, res){
+class Controller {
+    static async registerUser(req, res, next) {
         try {
             await User.create({
-                username : req.body.username,
+                username: req.body.username,
                 email: req.body.email,
                 password: req.body.password,
-              });
-        
-              res.status(201).json({ message: "Account has been created"});
+            });
+
+            res.status(201).json({ message: "Account has been created" });
         } catch (err) {
-            console.log(err);
-            if(err.name === "SequelizeValidationError" || err.name === "SequelizeUniqueConstraintError" ){
-                res.status(400).json({message : err.errors[0].message})
-            }else{
-                res.status(500).json({message : "Internal Server Error" })
-            }
+            next(err);
         }
     }
-    static async loginUser(req, res){
+    static async loginUser(req, res, next) {
         try {
             let { email, password } = req.body;
 
@@ -36,28 +31,23 @@ class Controller{
             } else {
                 let compareResult = compare(password, user.password);
 
-                if(!compareResult){
+                if (!compareResult) {
                     throw { name: "Unauthorized" };
-                } else{
+                } else {
                     const { id } = user;
                     let token = createToken({
-                      id,
+                        id,
                     });
-          
-                    res.status(200).json({ access_token: token, username: user.username });
+
+                    res
+                        .status(200)
+                        .json({ access_token: token, username: user.username });
                 }
             }
         } catch (err) {
-            console.log(err);
-            if(err.name === "badRequest"){
-                res.status(400).json({message : "Email / Password Required"})
-            } else if(err.name === "Unauthorized"){
-                res.status(401).json({message : "Email / Password Invalid"})
-            }else{
-                res.status(500).json({message : "Internal Server Error" })
-            }
+            next(err);
         }
     }
 }
 
-module.exports = Controller
+module.exports = Controller;

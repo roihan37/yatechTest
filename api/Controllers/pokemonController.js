@@ -1,14 +1,16 @@
-const axios = require('axios')
+const axios = require("axios");
 
-class Controller{
-    static async pokemonList(req, res){
+class Controller {
+    static async pokemonList(req, res, next) {
         try {
-            const getAllPokemons = await axios.get('https://pokeapi.co/api/v2/pokemon/ditto');
-            res.status(200).json( getAllPokemons.data );
+            const getAllPokemons = await axios.get(
+                "https://pokeapi.co/api/v2/pokemon/ditto"
+            );
+            res.status(200).json(getAllPokemons.data);
         } catch (err) {
-            res.status(500).json({message : "Internal Server Error" })
+            next(err);
         }
     }
 }
 
-module.exports = Controller
+module.exports = Controller;
